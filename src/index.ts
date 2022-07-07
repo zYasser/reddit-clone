@@ -1,18 +1,34 @@
+import 'reflect-metadata'
 import {MikroORM, RequiredEntityData} from "@mikro-orm/core";
 import { __prod__ } from "./constants";
 import { Post } from "./entities/post";
 import microConfig from "./mikro-orm.config"
+import express from 'express'
+import {ApolloServer} from 'apollo-server-express'
+import {buildSchema} from 'type-graphql'
+import { HelloResolver } from "./resolvers/hello";
+import { PostResolver } from "./resolvers/post";
 const main=async () => {
     
     const orm= await MikroORM.init(microConfig);
 
     await orm.getMigrator().up();   
-    const post = orm.em.fork({}).create(Post, {
-        title: 'my first post',
-      } as RequiredEntityData<Post>)
-      await orm.em.persistAndFlush(post)    // console.log('------------SQL 2-------------');
-    // await orm.em.nativeInsert(Post,{title:"Second Post"})
-    
+    const app=express()
+    const apolloServer=new ApolloServer({
+      schema:await buildSchema({
+        resolvers:[HelloResolver,PostResolver],
+        validate:false,
+
+      }),
+      context:({em:orm.em}) //This will help us to access everything we passed here to all our's resolver
+    })
+    await apolloServer.start()
+    apolloServer.applyMiddleware({app})
+
+    app.listen((4000),()=>{
+        console.log('server started on port 4000');
+        
+    })      
     
     
 
