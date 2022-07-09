@@ -36,15 +36,29 @@ export class UserResolver{
 
 
 
-@Mutation(()=>User,{nullable:true})
+@Mutation(()=>UserResponse,{nullable:true})
 async register(
     @Arg("options") options:UsernamePasswordInput,
     @Ctx(){em}:MyContext
-){
+):Promise<UserResponse>{
+    if(options.username.length<2){
+       return{ errors:[{field:'username',message:"username can not be less than 2 character "}]}
+ 
+    }
+    if(options.password.length<=5){
+        return{ errors:[{field:'password',message:"password can not be less than 6 character"}]}
+
+    }
     const hashedPassword=await argon2.hash(options.password)
     const user=em.create(User,{username:options.username, password:hashedPassword} as RequiredEntityData<User>)
-    await em.persistAndFlush(user)
-    return user; 
+    try{
+        await em.persistAndFlush(user)
+    }catch(err){
+        if(err.code==='23505' || err.detail.includes('already exists')){
+            return{ errors:[{field:'username',message:"Username already exist"}]}
+        }
+    }
+    return {user}; 
 }
 
 
