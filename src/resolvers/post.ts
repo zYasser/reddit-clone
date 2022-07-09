@@ -1,7 +1,7 @@
-import { Post } from "../entities/post";
+import { Post } from "../entities/Post";
 import { MyContext } from "src/types";
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
-import { RequiredEntityData, t } from "@mikro-orm/core";
+import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import { RequiredEntityData } from "@mikro-orm/core";
 
 @Resolver()
 export class PostResolver{
