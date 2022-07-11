@@ -45,7 +45,7 @@ async register(
        return{ errors:[{field:'username',message:"username can not be less than 2 character "}]}
  
     }
-    if(options.password.length<=5){
+    if(options.password.length<=3){
         return{ errors:[{field:'password',message:"password can not be less than 6 character"}]}
 
     }
@@ -65,7 +65,7 @@ async register(
 @Mutation(()=>UserResponse)
 async login(
     @Arg("options") options:UsernamePasswordInput,
-    @Ctx(){em}:MyContext
+    @Ctx(){em,req}:MyContext
 ):Promise<UserResponse>{
 
 
@@ -83,8 +83,8 @@ async login(
         return {
             errors:[{field:'password',message:"Incorrect Password Try again"}]
         }
-
     }
+    req.session.UserID=user.id;
     return {
         user
     }
