@@ -8,7 +8,7 @@ import { useMutation } from "urql";
 interface registerProps {}
 const REGISTER_MUT = `
 mutation Register($username: String!, $password:String!){
-  login(options:{username:$username, password:$password}){
+  register(options:{username:$username, password:$password}){
     errors{
       field
       message
@@ -18,8 +18,8 @@ mutation Register($username: String!, $password:String!){
       id
     }
   }
-}`;
-
+}
+`
 const Register: React.FC<registerProps> = ({}) => {
   const [, register] = useMutation(REGISTER_MUT);
   return (
