@@ -3,22 +3,19 @@ import { Field, ObjectType } from "type-graphql";
 
 @Entity()
 @ObjectType()
-export class Post{
-    @Field()
-    @PrimaryKey()
-    id!:number;
+export class Post {
+  @Field()
+  @PrimaryKey()
+  id!: number;
 
-    @Field(() => String)
-    @Property({type:'date'})
-    createdAt=new Date();
+  @Field(() => String)
+  @Property({ type: "date" })
+  createdAt = new Date();
 
-    @Field(() => String)
-    @Property({type:'date',onUpdate:()=> new Date()})
-
-    updateAt=new Date();
-    @Field()
-
-    @Property({type:'text'})
-    title!:string;
-
+  @Field(() => String)
+  @Property({ type: "date", onUpdate: () => new Date() })
+  updateAt = new Date();
+  @Field()
+  @Property({ type: "text" })
+  title!: string;
 }
