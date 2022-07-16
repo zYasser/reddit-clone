@@ -10,7 +10,6 @@ import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import session from "express-session";
 import connectRedis from "connect-redis";
-import cors from "cors";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 
 const main = async () => {
@@ -23,12 +22,8 @@ const main = async () => {
   let redisClient = createClient({ legacyMode: true });
   redisClient.connect().catch(console.error);
   const RedisStore = connectRedis(session);
-  app.use(
-    cors({
-      origin: "http://localhost:3000",
-      credentials: true,
-    })
-  );
+
+  
   app.use(
     session({
       name: "qid",
@@ -54,7 +49,10 @@ const main = async () => {
     context: ({ req, res }) => ({ em: orm.em, req, res }), //This will help us to access everything we passed here to all our's resolver
   });
   await apolloServer.start();
-  apolloServer.applyMiddleware({ app, cors: false });
+  apolloServer.applyMiddleware({ app, cors:{
+    origin:['http://localhost:3000',],
+    credentials:true
+  } });
   app.listen(4000, () => {
     console.log("server started on port 4000");
   });

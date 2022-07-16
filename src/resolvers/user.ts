@@ -12,6 +12,7 @@ import {
   Query,
   Resolver,
 } from "type-graphql";
+import { EntityManager } from "@mikro-orm/postgresql";
 
 @InputType()
 class UsernamePasswordInput {
@@ -68,8 +69,22 @@ export class UserResolver {
       username: options.username,
       password: hashedPassword,
     } as RequiredEntityData<User>);
+    
     try {
-      await em.persistAndFlush(user);
+      
+      const result = await (em as EntityManager)
+        .createQueryBuilder(User)
+        .getKnexQuery()
+        .insert({
+          username: options.username,
+          password: hashedPassword,
+          created_at: new Date(),
+          updated_at: new Date(),
+        })
+        .returning("*");
+        const newUser=result[0]
+        return newUser;
+
     } catch (err) {
       if (err.code === "23505" || err.detail.includes("already exists")) {
         return {
@@ -81,6 +96,28 @@ export class UserResolver {
 
     return { user };
   }
+  @Mutation(()=> UserResponse)
+async deleteUser(@Arg("userId") userId:number , @Ctx() {em,res} : MyContext):Promise<UserResponse>{
+try {
+  const user=await em.findOneOrFail(User, {id:userId})
+  await em.removeAndFlush(user)
+  return {user}
+} catch  {
+  res.status(404)
+  console.log(res);
+  
+  return {
+    errors: [
+      {
+        field: "id",
+        message: "There is no user with this id",
+      },
+    ],
+  };
+}
+
+}
+
 
   @Mutation(() => UserResponse)
   async login(
