@@ -1,4 +1,3 @@
-import { RequiredEntityData } from "@mikro-orm/core";
 import argon2 from "argon2";
 import { User } from "../entities/User";
 import { MyContext } from "src/types";
@@ -65,13 +64,8 @@ export class UserResolver {
       };
     }
     const hashedPassword = await argon2.hash(options.password);
-    const user = em.create(User, {
-      username: options.username,
-      password: hashedPassword,
-    } as RequiredEntityData<User>);
-    
+    let user;
     try {
-      
       const result = await (em as EntityManager)
         .createQueryBuilder(User)
         .getKnexQuery()
@@ -79,14 +73,13 @@ export class UserResolver {
           username: options.username,
           password: hashedPassword,
           created_at: new Date(),
-          updated_at: new Date(),
+          update_at: new Date(),
         })
         .returning("*");
-        const newUser=result[0]
-        return newUser;
-
+      const newUser = result[0];
+      user = newUser;
     } catch (err) {
-      if (err.code === "23505" || err.detail.includes("already exists")) {
+      if (err.code === "23505") {
         return {
           errors: [{ field: "username", message: "Username already exist" }],
         };
@@ -96,28 +89,29 @@ export class UserResolver {
 
     return { user };
   }
-  @Mutation(()=> UserResponse)
-async deleteUser(@Arg("userId") userId:number , @Ctx() {em,res} : MyContext):Promise<UserResponse>{
-try {
-  const user=await em.findOneOrFail(User, {id:userId})
-  await em.removeAndFlush(user)
-  return {user}
-} catch  {
-  res.status(404)
-  console.log(res);
-  
-  return {
-    errors: [
-      {
-        field: "id",
-        message: "There is no user with this id",
-      },
-    ],
-  };
-}
+  @Mutation(() => UserResponse)
+  async deleteUser(
+    @Arg("userId") userId: number,
+    @Ctx() { em, res }: MyContext
+  ): Promise<UserResponse> {
+    try {
+      const user = await em.findOneOrFail(User, { id: userId });
+      await em.removeAndFlush(user);
+      return { user };
+    } catch {
+      res.status(404);
+      console.log(res);
 
-}
-
+      return {
+        errors: [
+          {
+            field: "id",
+            message: "There is no user with this id",
+          },
+        ],
+      };
+    }
+  }
 
   @Mutation(() => UserResponse)
   async login(
