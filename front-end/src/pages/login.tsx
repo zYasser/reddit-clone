@@ -3,9 +3,11 @@ import { Form, Formik } from "formik";
 import { Box, Button } from "@chakra-ui/react";
 import { Wrapper } from "../components/Wrapper";
 import { InputField } from "../components/InputFieldProps";
-import { useLoginMutation, UsernamePasswordInput } from "../generated/graphql";
+import { useLoginMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/ToErrorMap";
 import { useRouter } from "next/router";
+import { createUrqlClient } from "../utils/createURqlClinet";
+import { withUrqlClient } from "next-urql";
 
 interface LoginProps {}
 const Login: React.FC<LoginProps> = ({}) => {
@@ -53,4 +55,4 @@ const Login: React.FC<LoginProps> = ({}) => {
     </Wrapper>
   );
 };
-export default Login;
+export default withUrqlClient(createUrqlClient)(Login);
