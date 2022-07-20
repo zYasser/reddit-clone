@@ -7,19 +7,93 @@ import { User } from "../entities/User";
 import { UsernamePasswordInput } from "../utils/UsernamePasswordInput";
 import { UserResponse } from "../utils/UserResponse";
 import sendEmail from "../utils/sendEmail";
+import { v4 } from "uuid";
+import { FORGET_PASSWORD_PREFIX } from "../constants";
 
 @Resolver()
 export class UserResolver {
-  @Mutation(() => Boolean)
-  async forgetPassword(@Arg("email") email: string, @Ctx() { em }: MyContext) {
-    const user = em.findOne(User, { email });
-    if(!user){
-      return true
+
+  @Mutation(()=>UserResponse)
+  async changePassword(
+    @Arg('token') token:String ,
+    @Arg('newPassword') newPassword:String,
+    @Ctx() { em, redis }: MyContext
+  ):Promise<UserResponse>{
+    if (newPassword.length <= 3) {
+      return {
+        errors: [
+          {
+            field: "newPassword",
+            message: "password can not be less than 6 character",
+          },
+        ],
+      };
     }
-    const token='123456'
-    await sendEmail(email,`
-    <a href="http://localhost:3000/chnage-password/${token}">reset your password</a>
-    `)
+    const userId=await redis.get(FORGET_PASSWORD_PREFIX+token) 
+    if(!userId){
+      return {
+        errors: [
+          {
+            field: "token",
+            message: "token is expired ",
+          },
+        ],
+      };
+    }
+    const user=await em.findOne(User,{id:parseInt(userId)})
+    if(!user){
+      return {
+        errors: [
+          {
+            field: "token",
+            message: "account no longer exist ",
+          },
+        ],
+      };
+
+    } 
+    const hashedPassword = await argon2.hash(newPassword as string);
+
+    user!.password=hashedPassword
+    await em.persistAndFlush(user)
+    redis.del(FORGET_PASSWORD_PREFIX+token)
+    
+    return {user}
+    
+  }
+
+
+
+
+
+
+
+
+
+  
+  @Mutation(() => Boolean)
+  async forgetPassword(
+    @Arg("email") email: string,
+    @Ctx() { em, redis }: MyContext
+  ) {
+    const user = await em.findOne(User, { email });
+    if (!user) {
+      return true;
+    }
+    const token = v4();
+    
+    await redis.set(
+      FORGET_PASSWORD_PREFIX + token,
+      user.id,
+      "EX",
+      1000 * 60 * 60 * 24 * 3
+    );
+    await sendEmail(
+      email,
+      `
+    <a href="http://localhost:3000/change-password/${token}">reset your password</a>
+    `
+    );
     return true;
   }
 

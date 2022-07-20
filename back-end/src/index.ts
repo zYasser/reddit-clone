@@ -5,25 +5,25 @@ import connectRedis from "connect-redis";
 import express from "express";
 import session from "express-session";
 import "reflect-metadata";
+import  Redis  from "ioredis";
 import { buildSchema } from "type-graphql";
 import microConfig from "./mikro-orm.config";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
+import { COOKIE_NAME } from "./constants";
 const main = async () => {
   const orm = await MikroORM.init(microConfig);
   await orm.getMigrator().up();
   const app = express();
+  const redis=new Redis()
 
-  const { createClient } = require("redis");
-  let redisClient = createClient({ legacyMode: true });
-  redisClient.connect().catch(console.error);
   const RedisStore = connectRedis(session);
 
   app.use(
     session({
-      name: "qid",
-      store: new RedisStore({ client: redisClient, disableTouch: true }),
+      name: COOKIE_NAME,
+      store: new RedisStore({ client: redis, disableTouch: true }),
       saveUninitialized: false,
       secret: "keyboard cat",
       resave: false,
@@ -42,7 +42,7 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }) => ({ em: orm.em, req, res  }), //This will help us to access everything we passed here to all our's resolver
+    context: ({ req, res }) => ({ em: orm.em, req, res ,redis }), //This will help us to access everything we passed here to all our's resolver
   });
   await apolloServer.start();
   apolloServer.applyMiddleware({

@@ -1,21 +1,16 @@
 import { ChakraProvider } from "@chakra-ui/react";
+import { Cache, cacheExchange, QueryInput } from "@urql/exchange-graphcache";
 import { createClient, dedupExchange, fetchExchange, Provider } from "urql";
-import {
-  Cache,
-  cacheExchange,
-  QueryInput,
-  CacheExchangeOpts,
-} from "@urql/exchange-graphcache";
 
-import theme from "../theme";
 import { AppProps } from "next/app";
 import {
+  LoginMutation,
+  LogoutMutation,
   MeDocument,
   MeQuery,
-  LoginMutation,
   RegisterMutation,
-  LogoutMutation,
 } from "../generated/graphql";
+import theme from "../theme";
 
 function betterUpdateQuery<Result, Query>(
   cache: Cache,
