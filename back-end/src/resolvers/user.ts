@@ -6,13 +6,20 @@ import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import { User } from "../entities/User";
 import { UsernamePasswordInput } from "../utils/UsernamePasswordInput";
 import { UserResponse } from "../utils/UserResponse";
+import sendEmail from "../utils/sendEmail";
 
 @Resolver()
 export class UserResolver {
   @Mutation(() => Boolean)
-  async forgetPasswor(@Arg("email") email: string, @Ctx() { em }: MyContext) {
-    // const user = em.findOne(User, { email });
-
+  async forgetPassword(@Arg("email") email: string, @Ctx() { em }: MyContext) {
+    const user = em.findOne(User, { email });
+    if(!user){
+      return true
+    }
+    const token='123456'
+    await sendEmail(email,`
+    <a href="http://localhost:3000/chnage-password/${token}">reset your password</a>
+    `)
     return true;
   }
 

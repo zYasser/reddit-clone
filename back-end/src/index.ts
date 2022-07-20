@@ -42,7 +42,7 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }) => ({ em: orm.em, req, res }), //This will help us to access everything we passed here to all our's resolver
+    context: ({ req, res }) => ({ em: orm.em, req, res  }), //This will help us to access everything we passed here to all our's resolver
   });
   await apolloServer.start();
   apolloServer.applyMiddleware({
