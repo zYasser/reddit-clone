@@ -19,6 +19,3 @@ export default{
     debug:!__prod__
 } as Parameters<typeof MikroORM.init>[0];
 
-/*
-Here we need to cast it into Parameters because we don't want to make dbName as String it should be type of dbName not a name
-*/

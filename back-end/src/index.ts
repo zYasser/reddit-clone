@@ -1,22 +1,39 @@
-import { MikroORM } from "@mikro-orm/core";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 import { ApolloServer } from "apollo-server-express";
 import connectRedis from "connect-redis";
 import express from "express";
 import session from "express-session";
+import Redis from "ioredis";
 import "reflect-metadata";
-import  Redis  from "ioredis";
 import { buildSchema } from "type-graphql";
-import microConfig from "./mikro-orm.config";
+import { DataSource } from "typeorm";
+import { COOKIE_NAME } from "./constants";
+import { Post } from "./entities/Post";
+import { User } from "./entities/User";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
-import { COOKIE_NAME } from "./constants";
+import { createConnection } from "typeorm";
+import path from "path";
 const main = async () => {
-  const orm = await MikroORM.init(microConfig);
-  await orm.getMigrator().up();
+  const appDataSource = await createConnection({
+    type: "postgres",
+    host: "localhost",
+    database: "reddit",
+    username: "postgres",
+    password: "root",
+    logging: true,
+    synchronize: true,
+    migrations: {
+      path: path.join(__dirname, "./migrations"),
+      glob: "!(*.d).{js,ts}",
+    },
+    entities: [Post, User],
+    port: 5432,
+  });
+
   const app = express();
-  const redis=new Redis()
+  const redis = new Redis();
 
   const RedisStore = connectRedis(session);
 
@@ -42,7 +59,7 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }) => ({ em: orm.em, req, res ,redis }), //This will help us to access everything we passed here to all our's resolver
+    context: ({ req, res }) => ({ appDataSource, req, res, redis }), //This will help us to access everything we passed here to all our's resolver
   });
   await apolloServer.start();
   apolloServer.applyMiddleware({
