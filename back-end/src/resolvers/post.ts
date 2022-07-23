@@ -1,5 +1,6 @@
-import { MyContext } from "src/types";
-import { Arg, InputType, Mutation, Query, Resolver,Field, Ctx } from "type-graphql";
+import { isAuth } from "../middleware/auth";
+import { MyContext } from "../types";
+import { Arg, InputType, Mutation, Query, Resolver,Field, Ctx, UseMiddleware } from "type-graphql";
 import { Post } from "../entities/Post";
 
 @InputType()
@@ -28,7 +29,8 @@ export class PostResolver{
     return Post.findOneBy({ id });
   }
   @Mutation(() => Post, { nullable: true })
-  async createAPost(
+  @UseMiddleware(isAuth)
+  async createPost(
     @Arg("input") input: PostInput,
     @Ctx() {req}:MyContext
     

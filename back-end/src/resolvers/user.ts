@@ -183,7 +183,7 @@ export class UserResolver {
         ],
       };
     }
-    req.session.UserID = user.id;
+    req.session.userId = user.id;
 
     return {
       user,
@@ -192,11 +192,11 @@ export class UserResolver {
 
   @Query(() => User, { nullable: true })
   async me(@Ctx() { req }: MyContext) {
-    if (!req.session.UserID) {
+    if (!req.session.userId) {
       return null;
     }
     const user = await User.findOneBy({
-      id: req.session.UserID,
+      id: req.session.userId,
     });
     return user;
   }
