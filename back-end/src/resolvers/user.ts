@@ -1,13 +1,13 @@
 import argon2 from "argon2";
 import { MyContext } from "src/types";
-import { RegisterValidate } from "../utils/RegisterValidate";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
-import { User } from "../entities/User";
-import { UsernamePasswordInput } from "../utils/UsernamePasswordInput";
-import { UserResponse } from "../utils/UserResponse";
-import sendEmail from "../utils/sendEmail";
 import { v4 } from "uuid";
 import { FORGET_PASSWORD_PREFIX } from "../constants";
+import { User } from "../entities/User";
+import { RegisterValidate } from "../utils/RegisterValidate";
+import sendEmail from "../utils/sendEmail";
+import { UsernamePasswordInput } from "../utils/UsernamePasswordInput";
+import { UserResponse } from "../utils/UserResponse";
 
 @Resolver()
 export class UserResolver {
@@ -116,8 +116,7 @@ export class UserResolver {
         ])
         .returning("*")
         .execute();
-        user=result.raw[0]
-        
+      user = result.raw[0];
     } catch (err) {
       if (err.code === "23505") {
         return {
@@ -141,7 +140,6 @@ export class UserResolver {
       return { user };
     } catch {
       res.status(404);
-      console.log(res);
 
       return {
         errors: [
@@ -165,7 +163,6 @@ export class UserResolver {
         ? { email: usernameOrEmail }
         : { username: usernameOrEmail }
     );
-    console.log(user, usernameOrEmail);
 
     if (!user) {
       return {
