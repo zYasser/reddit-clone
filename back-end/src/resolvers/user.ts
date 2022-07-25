@@ -91,8 +91,7 @@ export class UserResolver {
 
   @Mutation(() => UserResponse, { nullable: true })
   async register(
-    @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { req }: MyContext
+    @Arg("options") options: UsernamePasswordInput
   ): Promise<UserResponse> {
     const response = RegisterValidate(options);
 

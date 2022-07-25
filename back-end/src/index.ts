@@ -24,12 +24,13 @@ const main = async () => {
     logging: true,
     synchronize: true,
     migrations: {
-      path: path.join(__dirname, "./migrations"),
+      path: path.join(__dirname, "./migrations/"),
       glob: "!(*.d).{js,ts}",
     },
     entities: [Post, User],
     port: 5432,
   });
+  await appDataSource.runMigrations();
 
   const app = express();
   const redis = new Redis();
