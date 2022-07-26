@@ -1,0 +1,9 @@
+fragment PostRes on Post {
+    id
+    creatorId
+    createdAt
+    updateAt
+    title
+    textSnippet
+  
+}

@@ -77,6 +77,12 @@ export type MutationUpdatePostArgs = {
   title?: InputMaybe<Scalars['String']>;
 };
 
+export type PaginatedPost = {
+  __typename?: 'PaginatedPost';
+  hasMore: Scalars['Boolean'];
+  posts: Array<Post>;
+};
+
 export type Post = {
   __typename?: 'Post';
   createdAt: Scalars['String'];
@@ -99,7 +105,7 @@ export type Query = {
   hello: Scalars['String'];
   me?: Maybe<User>;
   post?: Maybe<Post>;
-  posts: Array<Post>;
+  posts: PaginatedPost;
 };
 
 
@@ -134,6 +140,8 @@ export type UsernamePasswordInput = {
   username: Scalars['String'];
 };
 
+export type PostResFragment = { __typename?: 'Post', id: number, creatorId: number, createdAt: string, updateAt: string, title: string, textSnippet: string };
+
 export type RegularErrorFragment = { __typename?: 'FieldError', field: string, message: string };
 
 export type RegularUserFragment = { __typename?: 'User', id: number, username: string };
@@ -153,7 +161,7 @@ export type CreatePostMutationVariables = Exact<{
 }>;
 
 
-export type CreatePostMutation = { __typename?: 'Mutation', createPost?: { __typename?: 'Post', id: number, creatorId: number, title: string, text: string, createdAt: string, updateAt: string } | null };
+export type CreatePostMutation = { __typename?: 'Mutation', createPost?: { __typename?: 'Post', id: number, creatorId: number, createdAt: string, updateAt: string, title: string, textSnippet: string } | null };
 
 export type ForgetPasswordMutationVariables = Exact<{
   email: Scalars['String'];
@@ -193,8 +201,18 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: Array<{ __typename?: 'Post', id: number, createdAt: string, updateAt: string, title: string, textSnippet: string }> };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPost', hasMore: boolean, posts: Array<{ __typename?: 'Post', id: number, creatorId: number, createdAt: string, updateAt: string, title: string, textSnippet: string }> } };
 
+export const PostResFragmentDoc = gql`
+    fragment PostRes on Post {
+  id
+  creatorId
+  createdAt
+  updateAt
+  title
+  textSnippet
+}
+    `;
 export const RegularErrorFragmentDoc = gql`
     fragment RegularError on FieldError {
   field
@@ -232,15 +250,10 @@ export function useChangePasswordMutation() {
 export const CreatePostDocument = gql`
     mutation createPost($PostInput: PostInput!) {
   createPost(input: $PostInput) {
-    id
-    creatorId
-    title
-    text
-    createdAt
-    updateAt
+    ...PostRes
   }
 }
-    `;
+    ${PostResFragmentDoc}`;
 
 export function useCreatePostMutation() {
   return Urql.useMutation<CreatePostMutation, CreatePostMutationVariables>(CreatePostDocument);
@@ -299,14 +312,13 @@ export function useMeQuery(options?: Omit<Urql.UseQueryArgs<MeQueryVariables>, '
 export const PostsDocument = gql`
     query Posts($limit: Int!, $cursor: String) {
   posts(limit: $limit, cursor: $cursor) {
-    id
-    createdAt
-    updateAt
-    title
-    textSnippet
+    hasMore
+    posts {
+      ...PostRes
+    }
   }
 }
-    `;
+    ${PostResFragmentDoc}`;
 
 export function usePostsQuery(options: Omit<Urql.UseQueryArgs<PostsQueryVariables>, 'query'>) {
   return Urql.useQuery<PostsQuery>({ query: PostsDocument, ...options });

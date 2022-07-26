@@ -1,17 +1,28 @@
-import { Box, Button, Flex, Heading, Link, Stack, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Link,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
+import { useState } from "react";
 import { Layout } from "../components/Layout";
 import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createURqlClinet";
 const Index = () => {
-  const [{ data,fetching }] = usePostsQuery({
-    variables: {
-      limit: 7,
-    },
+  const [variables, setVariables] = useState({
+    limit: 10,
+    cursor: null as string | null,
   });
-  if(!fetching && !data){
-    return <div>There is not post available</div>
+  const [{ data, fetching }] = usePostsQuery({
+    variables,
+  });
+  if (!fetching && !data) {
+    return <div>There is not post available</div>;
   }
   return (
     <>
@@ -19,29 +30,40 @@ const Index = () => {
         <Flex>
           <Heading>Reddit-Clone</Heading>
           <NextLink href={"/create-post"}>
-            <Button ml={'auto'}>Create Post</Button>
+            <Button ml={"auto"}>Create Post</Button>
           </NextLink>
         </Flex>
         <br />
-        {!data  && fetching ? (
+        {!data && fetching ? (
           <div>Loading...</div>
         ) : (
           <Stack spacing={8}>
-            {data.posts.map((e) => (
+            {data!.posts.posts.map((e) => (
               <Box key={e.id} p={5} shadow="md" borderWidth="1px">
                 <Heading fontSize="xl">{e.title}</Heading>
-                <Text mt={4}>{e.textSnippet}</Text>
+                <Text mt={4}>{e.textSnippet}...</Text>
               </Box>
             ))}
           </Stack>
         )}
-        {data ? (
+        {data && data.posts.hasMore ? (
           <Flex>
-            <Button m={'auto'} isLoading={fetching} my={8}>
+            <Button
+              m={"auto"}
+              isLoading={fetching}
+              my={8}
+              onClick={() => {
+                setVariables({
+                  limit: variables.limit,
+                  cursor: data.posts.posts[data.posts.posts.length - 1].createdAt,
+                });
+                console.log("asdas");
+              }}
+            >
               Load more
             </Button>
           </Flex>
-        )  : null}
+        ) : (<Text textAlign={'center'}>Nothing More to load</Text>)}
       </Layout>
     </>
   );
