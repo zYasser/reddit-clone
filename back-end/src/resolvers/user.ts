@@ -1,6 +1,14 @@
 import argon2 from "argon2";
 import { MyContext } from "src/types";
-import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import {
+  Arg,
+  Ctx,
+  FieldResolver,
+  Mutation,
+  Query,
+  Resolver,
+  Root,
+} from "type-graphql";
 import { v4 } from "uuid";
 import { FORGET_PASSWORD_PREFIX } from "../constants";
 import { User } from "../entities/User";
@@ -9,8 +17,18 @@ import sendEmail from "../utils/sendEmail";
 import { UsernamePasswordInput } from "../utils/UsernamePasswordInput";
 import { UserResponse } from "../utils/UserResponse";
 
-@Resolver()
+@Resolver(User)
 export class UserResolver {
+  @FieldResolver(() => String)
+  email(@Root() user: User, @Ctx() { req }: MyContext) {
+    //if it is the current user then show them their email
+    if (req.session.id === user.id) {
+      return user.email;
+    } else {
+      return "";
+    }
+  }
+
   @Mutation(() => UserResponse)
   async changePassword(
     @Arg("token") token: String,

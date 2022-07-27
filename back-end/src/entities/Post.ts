@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { User } from "./User";
+import { Updoot } from "../entities/Updoot";
+import { User } from "../entities/User";
 
 @Entity()
 @ObjectType()
@@ -19,9 +21,11 @@ export class Post extends BaseEntity {
   @Field()
   @Column()
   creatorId: number;
-
-  @ManyToOne(() => User, (user) => user.posts)
+  @Field(()=> User)
+  @ManyToOne(() => User, (creator) => creator.posts)
   creator: User;
+  @OneToMany(() => Updoot, (updoots) => updoots.post)
+  updoots: Updoot[];
 
   @Column()
   @Field()
@@ -30,7 +34,7 @@ export class Post extends BaseEntity {
   @Field()
   text!: string;
 
-  @Column({type:'int' , default:0})
+  @Column({ type: "int", default: 0 })
   @Field()
   points!: number;
 
