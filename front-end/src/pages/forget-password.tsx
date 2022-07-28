@@ -1,31 +1,19 @@
 import {
-  Alert,
-  AlertDescription,
   AlertDialog,
   AlertDialogBody,
   AlertDialogCloseButton,
   AlertDialogContent,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogOverlay,
-  AlertIcon,
-  AlertTitle,
-  Box,
-  Button,
-  CloseButton,
-  SlideFade,
-  useDisclosure,
+  AlertDialogOverlay, Button, useDisclosure
 } from "@chakra-ui/react";
-import { Formik, Form } from "formik";
+import { Form, Formik } from "formik";
 import { withUrqlClient } from "next-urql";
-import Link from "next/link";
-import router from "next/router";
 import React from "react";
 import { InputField } from "../components/InputFieldProps";
 import { Wrapper } from "../components/Wrapper";
 import { useForgetPasswordMutation } from "../generated/graphql";
-import { createUrqlClient } from "../utils/createURqlClinet";
-import { toErrorMap } from "../utils/ToErrorMap";
+import { createUrqlClient } from "../utils/createUrqlClinet";
 
 interface forgetPasswordProps {}
 

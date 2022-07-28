@@ -6,5 +6,9 @@ fragment PostRes on Post {
     title
     textSnippet
     points
-  
+    voteStatus
+    creator{
+        id
+        username
+    }
 }

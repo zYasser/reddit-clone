@@ -1,9 +1,10 @@
+import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
   Flex,
   Heading,
-  Link,
+  IconButton,
   Stack,
   Text,
 } from "@chakra-ui/react";
@@ -11,8 +12,9 @@ import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import { useState } from "react";
 import { Layout } from "../components/Layout";
+import { UpdootSection } from "../components/UpdootSection";
 import { usePostsQuery } from "../generated/graphql";
-import { createUrqlClient } from "../utils/createURqlClinet";
+import { createUrqlClient } from "../utils/createUrqlClinet";
 const Index = () => {
   const [variables, setVariables] = useState({
     limit: 10,
@@ -39,10 +41,14 @@ const Index = () => {
         ) : (
           <Stack spacing={8}>
             {data!.posts.posts.map((e) => (
-              <Box key={e.id} p={5} shadow="md" borderWidth="1px">
-                <Heading fontSize="xl">{e.title}</Heading>
-                <Text mt={4}>{e.textSnippet}...</Text>
-              </Box>
+              <Flex key={e.id} p={5} shadow="md" borderWidth="1px">
+                <UpdootSection post={e}/>
+                <Box>
+                  <Heading fontSize="xl">{e.title}</Heading>
+                  <Text>posted by {e.creator.username}</Text>
+                  <Text mt={4}>{e.textSnippet}...</Text>
+                </Box>
+              </Flex>
             ))}
           </Stack>
         )}
@@ -55,15 +61,17 @@ const Index = () => {
               onClick={() => {
                 setVariables({
                   limit: variables.limit,
-                  cursor: data.posts.posts[data.posts.posts.length - 1].createdAt,
+                  cursor:
+                    data.posts.posts[data.posts.posts.length - 1].createdAt,
                 });
-                console.log("asdas");
               }}
             >
               Load more
             </Button>
           </Flex>
-        ) : (<Text textAlign={'center'}>Nothing More to load</Text>)}
+        ) : (
+          <Text textAlign={"center"}>Nothing More to load</Text>
+        )}
       </Layout>
     </>
   );
