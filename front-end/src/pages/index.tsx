@@ -1,13 +1,4 @@
-import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  IconButton,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Stack, Text } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import { useState } from "react";
@@ -42,7 +33,7 @@ const Index = () => {
           <Stack spacing={8}>
             {data!.posts.posts.map((e) => (
               <Flex key={e.id} p={5} shadow="md" borderWidth="1px">
-                <UpdootSection post={e}/>
+                <UpdootSection post={e} />
                 <Box>
                   <Heading fontSize="xl">{e.title}</Heading>
                   <Text>posted by {e.creator.username}</Text>
@@ -75,5 +66,6 @@ const Index = () => {
       </Layout>
     </>
   );
-};
-export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
+}
+Index.getInitialProps = async (ctx) => { console.log(ctx.req.headers.cookie) };
+export default withUrqlClient(createUrqlClient, { ssr:true})(Index);
