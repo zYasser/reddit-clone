@@ -13,8 +13,8 @@ import React from "react";
 import { InputField } from "../components/InputFieldProps";
 import { Wrapper } from "../components/Wrapper";
 import { useForgetPasswordMutation } from "../generated/graphql";
-import { createUrqlClient } from "../utils/createUrqlClinet";
 
+import { createUrqlClient } from "../utils/createUrqlClinet";
 interface forgetPasswordProps {}
 
 export const forgetPassword: React.FC<forgetPasswordProps> = ({}) => {

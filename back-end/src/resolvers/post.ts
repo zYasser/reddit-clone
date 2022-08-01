@@ -49,7 +49,7 @@ export class PostResolver {
     const isUpVote = value !== -1;
     const realValue = isUpVote ? 1 : -1;
     const { userId } = req.session;
-    
+
     const updoot = await Updoot.findOne({ where: { postId, userId } });
     if (updoot && updoot.value !== realValue) {
       await getConnection().transaction(async (tm) => {
@@ -111,7 +111,7 @@ export class PostResolver {
     const realLimit = Math.min(50, limit);
     const hasMorePost = realLimit + 1;
     const replacement: any[] = [hasMorePost];
-         
+
     if (cursor) {
       replacement.push(new Date(parseInt(cursor)));
     }
@@ -140,8 +140,8 @@ export class PostResolver {
     };
   }
   @Query(() => Post, { nullable: true })
-  post(@Arg("id") id: number): Promise<Post | null> {
-    return Post.findOneBy({ id });
+  post(@Arg("id", () => Int) id: number): Promise<Post | null> {
+    return Post.findOne({ where: { id }, relations: ["creator"] });
   }
   @Mutation(() => Post, { nullable: true })
   @UseMiddleware(isAuth)
@@ -149,7 +149,6 @@ export class PostResolver {
     @Arg("input") input: PostInput,
     @Ctx() { req }: MyContext
   ): Promise<Post> {
-    
     const post = await Post.create({ ...input, creatorId: req.session.userId });
     await Post.save(post);
     return post;
@@ -171,13 +170,33 @@ export class PostResolver {
 
     return post;
   }
+  @UseMiddleware(isAuth)
   @Mutation(() => Boolean)
-  async deletePost(@Arg("id") id: number): Promise<boolean> {
-    try {
-      await Post.delete(id);
-    } catch {
+  async deletePost(
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<boolean> {
+    const post =await Post.findOneBy({id});
+    if(!post){
       return false;
     }
+    if(post?.creatorId!==req.session.userId){
+      throw new Error('not Authorized')
+    }
+    try {
+      await getConnection().transaction(async (tm) => {
+        await tm.query(`DELETE FROM Updoot WHERE "postId" = $1`, [id]);
+        await tm.query(`DELETE FROM post Where id=$1 AND "creatorId"=$2`, [
+          id,
+          req.session.userId,
+        ]);
+      });
+    } catch (e) {
+      console.log(e);
+
+      return false;
+    }
+
     return true;
   }
 }
