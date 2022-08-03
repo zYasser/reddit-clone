@@ -10,11 +10,9 @@ import {
   MeDocument,
   MeQuery,
   RegisterMutation,
-  VoteMutationVariables,
+  VoteMutationVariables
 } from "../generated/graphql";
-import { isServer } from "./isServer";
 import { betterUpdateQuery } from "./betterUpdateQuery";
-import { useEffect, useState } from "react";
 
 const errorExchange: Exchange =
   ({ forward }) =>
@@ -73,7 +71,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   const isServerSide = typeof window === 'undefined';
   let cookie
     if(isServerSide){
-      cookie=ctx.req.headers.cookie
+      cookie=ctx?.req?.headers.cookie
       
     }
 

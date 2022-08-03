@@ -1,10 +1,8 @@
-import { DeleteIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
   Flex,
   Heading,
-  IconButton,
   Link,
   Stack,
   Text,
@@ -12,13 +10,16 @@ import {
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import { useState } from "react";
+import { EditDeletePostButton } from "../components/EditDeletePostButton";
 import { Layout } from "../components/Layout";
 import { UpdootSection } from "../components/UpdootSection";
-import { useDeletePostMutation, usePostsQuery } from "../generated/graphql";
+import {
+  useDeletePostMutation,
+  useMeQuery,
+  usePostsQuery,
+} from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClinet";
-
 const Index = () => {
-  
   const [, deletePost] = useDeletePostMutation();
   const [variables, setVariables] = useState({
     limit: 10,
@@ -40,7 +41,7 @@ const Index = () => {
           <Stack spacing={8}>
             {data!.posts.posts.map((e) =>
               !e ? null : (
-                <Flex key={e.id} p={5} shadow="md" borderWidth="1px">
+                <Flex key={e.id} p={5} borderWidth="1px">
                   <UpdootSection post={e} />
                   <Box flex={1}>
                     <Flex alignContent={"center"}>
@@ -49,22 +50,20 @@ const Index = () => {
                           <Heading fontSize="xl">{e.title}</Heading>
                         </Link>
                       </NextLink>
-                      <IconButton
-                        variant="ghost"
-                        size={"sm"}
-                        aria-label="Delete Post"
-                        icon={<DeleteIcon />}
-                        title="Delete Post"
-                        color={"red"}
-                        ml="auto"
-                        onClick={() => {
-                          deletePost({ id: e.id });
-                        }}
-                      />
                     </Flex>
+                    <Text mt={-1}>posted by {e.creator.username}</Text>
+                    <Flex align={"center"}>
+                      <Text mt={3} flex={1}>
+                        {e.textSnippet}...
+                      </Text>
 
-                    <Text>posted by {e.creator.username}</Text>
-                    <Text mt={4}>{e.textSnippet}...</Text>
+                      <Box ml={"auto"}>
+                        <EditDeletePostButton
+                          id={e.id}
+                          creatorId={e.creatorId}
+                        />
+                      </Box>
+                    </Flex>
                   </Box>
                 </Flex>
               )

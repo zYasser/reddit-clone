@@ -153,11 +153,13 @@ export class PostResolver {
     await Post.save(post);
     return post;
   }
-
+  @UseMiddleware(isAuth)
   @Mutation(() => Post, { nullable: true })
   async updatePost(
-    @Arg("id") id: number,
-    @Arg("title", () => String, { nullable: true }) title: string
+    @Arg("id" , ()=> Int) id: number,
+    @Arg("title", () => String, { nullable: true }) title: string,
+    @Arg("text", () => String, { nullable: true }) text: string,
+    @Ctx() { req }: MyContext
   ): Promise<Post | null> {
     const post = await Post.findOneBy({ id });
     if (!post) {
@@ -165,10 +167,23 @@ export class PostResolver {
     }
     if (typeof title !== "undefined") {
       post.title = title;
-      await Post.update({ id }, { title });
+    }
+    if (typeof text !== "undefined") {
+      post.text = text;
     }
 
-    return post;
+    const res = await getConnection()
+      .createQueryBuilder()
+      .update(Post)
+      .set({ text, title })
+      .where(`id = :id and "creatorId" = :creatorId`, {
+        id,
+        creatorId: req.session.userId,
+      })
+      .returning("*")
+      .execute();
+    return res.raw[0];
+
   }
   @UseMiddleware(isAuth)
   @Mutation(() => Boolean)
@@ -176,12 +191,12 @@ export class PostResolver {
     @Arg("id", () => Int) id: number,
     @Ctx() { req }: MyContext
   ): Promise<boolean> {
-    const post =await Post.findOneBy({id});
-    if(!post){
+    const post = await Post.findOneBy({ id });
+    if (!post) {
       return false;
     }
-    if(post?.creatorId!==req.session.userId){
-      throw new Error('not Authorized')
+    if (post?.creatorId !== req.session.userId) {
+      throw new Error("not Authorized");
     }
     try {
       await getConnection().transaction(async (tm) => {

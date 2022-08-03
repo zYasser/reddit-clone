@@ -1,24 +1,12 @@
 import { Box, Flex, Heading, Skeleton, Stack, Text } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
-import { useRouter } from "next/router";
-import React from "react";
+import { EditDeletePostButton } from "../../components/EditDeletePostButton";
 import { Layout } from "../../components/Layout";
-import { UpdootSection } from "../../components/UpdootSection";
-import { usePostQuery } from "../../generated/graphql";
 import { createUrqlClient } from "../../utils/createUrqlClinet";
+import { useGetPostFromUrl } from "../../utils/useGetPostFromUrl";
 
 export const Post = ({}) => {
-  const router = useRouter();
-  const intId =
-    typeof router.query.id === "string"
-      ? parseInt(router.query.id as string)
-      : -1;
-  const [{ data, fetching }] = usePostQuery({
-    pause: intId === -1,
-    variables: {
-      id: intId,
-    },
-  });
+  const [{ data, fetching, error }] = useGetPostFromUrl();
   if (fetching) {
     return (
       <Stack>
@@ -35,7 +23,6 @@ export const Post = ({}) => {
       </Layout>
     );
   }
-  router.query.id;
   return (
     <Layout>
       <Box
@@ -50,7 +37,7 @@ export const Post = ({}) => {
               {data?.post?.title}
             </Heading>
           </Flex>
-          <Text fontSize={"md"} fontWeight={"bold"} color={"#508AA8"}>
+          <Text fontSize={"md"} fontWeight={"bold"} color={"#508AA8"} mt={1}>
             Posted by {data.post.creator.username}
           </Text>
         </Box>
@@ -61,13 +48,20 @@ export const Post = ({}) => {
           opacity={"0.9"}
           backdropFilter="auto"
           backdropBlur="6px"
+          mt={2}
         >
           <Text color={"black"} fontWeight={"medium"} fontSize={"18"}>
             {data?.post?.text}
           </Text>
         </Box>
+        <Flex justifyContent={"end"}>
+          <EditDeletePostButton
+            id={data?.post?.id}
+            creatorId={data?.post?.creatorId}
+          />
+        </Flex>
       </Box>
-    </Layout>
+    </Layout> 
   );
 };
 export default withUrqlClient(createUrqlClient, { ssr: true })(Post);

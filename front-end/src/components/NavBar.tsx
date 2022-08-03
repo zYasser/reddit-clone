@@ -1,19 +1,19 @@
-import { Box, Button, Flex, Heading, IconButton, Link } from "@chakra-ui/react";
-import React from "react";
-import NextLink from "next/link";
-import { MeQuery, useLogoutMutation, useMeQuery } from "../generated/graphql";
-import { isServer } from "../utils/isServer";
 import { AddIcon } from "@chakra-ui/icons";
-let user: MeQuery;
+import { Box, Button, Flex, Heading, IconButton, Link } from "@chakra-ui/react";
+import NextLink from "next/link";
+import React from "react";
+import { useLogoutMutation, useMeQuery } from "../generated/graphql";
+import { isServer } from "../utils/isServer";
 interface NavBarProps {}
 
 export const NavBar: React.FC<NavBarProps> = ({}) => {
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
 
-  const [{ data }] = useMeQuery({ pause: isServer() });
+  const [{ data, fetching }] = useMeQuery({ pause: isServer() });
   let body = null;
 
-if (!data?.me) {
+  if (fetching) {
+  } else if (!data?.me) {
     body = (
       <>
         <NextLink href={"/register"}>
@@ -70,4 +70,3 @@ if (!data?.me) {
     </Flex>
   );
 };
-export { user };
