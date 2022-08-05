@@ -17,6 +17,7 @@ import { getConnection } from "typeorm";
 import { Post } from "../entities/Post";
 import { isAuth } from "../middleware/auth";
 import { MyContext } from "../types";
+import { User } from "../entities/User";
 
 @InputType()
 class PostInput {
@@ -39,6 +40,23 @@ export class PostResolver {
   textSnippet(@Root() root: Post) {
     return root.text.slice(0, 50);
   }
+
+  @FieldResolver(() => User)
+  creator(@Root() post: Post, @Ctx() { userLoader }: MyContext) {
+    return userLoader.load(post.creatorId);
+  }
+  @FieldResolver(() => Int, { nullable: true })
+  async voteStatus(@Root() post: Post, @Ctx() { voteLoader, req }: MyContext) {
+    if(!req.session.userId){
+      return null;
+    }
+    const updoot = await voteLoader.load({
+      postId: post.id,
+      userId: req.session.userId,
+    });
+    return updoot ? updoot.value : null
+  }
+
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
   async vote(
@@ -116,17 +134,7 @@ export class PostResolver {
       replacement.push(new Date(parseInt(cursor)));
     }
     const qb = await getConnection().query(
-      `SELECT p.* , 
-      json_build_object(
-        'id',u.id,
-        'username',u.username,
-        'email',u.email
-      ) creator,
-      ${
-        req.session.userId
-          ? `(SELECT VALUE FROM updoot where "userId" = ${req.session.userId} and "postId"= p.id) "voteStatus"`
-          : `null as "voteStatus"`
-      }
+      `SELECT p.* 
       FROM POST P 
     INNER JOIN "user" u ON P."creatorId"=u.id ${
       cursor ? `where P."createdAt" < $2` : ""
@@ -156,7 +164,7 @@ export class PostResolver {
   @UseMiddleware(isAuth)
   @Mutation(() => Post, { nullable: true })
   async updatePost(
-    @Arg("id" , ()=> Int) id: number,
+    @Arg("id", () => Int) id: number,
     @Arg("title", () => String, { nullable: true }) title: string,
     @Arg("text", () => String, { nullable: true }) text: string,
     @Ctx() { req }: MyContext
@@ -183,7 +191,6 @@ export class PostResolver {
       .returning("*")
       .execute();
     return res.raw[0];
-
   }
   @UseMiddleware(isAuth)
   @Mutation(() => Boolean)
